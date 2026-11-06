@@ -22,7 +22,8 @@ import {
 } from '@lucide/vue'
 
 type Screen = 'home' | 'attractions' | 'food' | 'routes' | 'vision'
-type TourismKind = 'attraction' | 'food-area'
+type FoodCategory = 'restaurant' | 'food-area'
+type TourismKind = 'attraction' | FoodCategory
 
 interface TourismItem {
   id: string
@@ -32,9 +33,11 @@ interface TourismItem {
   description: string
   image: string
   imageSource?: string
+  imageSourcePlace?: string
   imageAlt: string
   imageCredit: string
   sourceUrl: string
+  sourceName?: string
   mapUrl: string
   town: string
   address: string
@@ -52,6 +55,8 @@ interface TourismResponse {
     sourceUrl: string
     fetchedAt: string
     attractionUpdatedAt: string
+    foodShopsSourceUrl?: string
+    foodShopsSourceName?: string
     warnings: string[]
   }
   attractions: TourismItem[]
@@ -78,6 +83,13 @@ const selectedRoute = ref<TravelRoute | null>(null)
 const activeTown = ref('全部')
 const attractionPage = ref(0)
 const foodPage = ref(0)
+const foodCategory = ref<FoodCategory>('restaurant')
+
+const placeTypeLabels: Record<TourismKind, string> = {
+  attraction: '城市景點',
+  restaurant: '美食店家',
+  'food-area': '美食街區',
+}
 
 const tourismBaseUrl = (useRuntimeConfig().app.baseURL || '/').replace(
   /\/$/,
@@ -145,8 +157,8 @@ const navItems = [
   },
   {
     id: 'food' as Screen,
-    label: '夜市美食',
-    sub: '從市場吃到巷弄',
+    label: '各區美食',
+    sub: '按行政區探索',
     icon: UtensilsCrossed,
   },
   {id: 'routes' as Screen, label: '旅遊推薦', sub: '三條主題路線', icon: Route},
@@ -170,10 +182,13 @@ const filteredAttractions = computed(() =>
     : attractions.value.filter((item) => item.town === activeTown.value),
 )
 
-const filteredFoods = computed(() =>
-  activeTown.value === '全部'
-    ? foods.value
-    : foods.value.filter((item) => item.town === activeTown.value),
+const foodAreas = computed(() => foods.value.filter(item => item.kind === 'food-area'))
+const filteredFoods = computed(() => foods.value.filter(item =>
+  item.kind === foodCategory.value && (activeTown.value === '全部' || item.town === activeTown.value),
+))
+const activeFoodSource = computed(() => foodCategory.value === 'restaurant'
+  ? {name: data.value?.meta.foodShopsSourceName, url: data.value?.meta.foodShopsSourceUrl}
+  : {name: data.value?.meta.source, url: data.value?.meta.sourceUrl},
 )
 
 const attractionPages = computed(() =>
@@ -204,7 +219,7 @@ const refreshFeaturedStories = () => {
   const randomAttraction =
     otherAttractions[Math.floor(Math.random() * otherAttractions.length)]
   const randomFood =
-    foods.value[Math.floor(Math.random() * foods.value.length)]
+    foodAreas.value[Math.floor(Math.random() * foodAreas.value.length)]
 
   featuredStories.value = [
     government,
@@ -431,6 +446,11 @@ const selectTown = (town: string) => {
   foodPage.value = 0
 }
 
+const selectFoodCategory = (category: FoodCategory) => {
+  foodCategory.value = category
+  foodPage.value = 0
+}
+
 const changePage = (kind: TourismKind, direction: number) => {
   if (kind === 'attraction') {
     attractionPage.value =
@@ -503,7 +523,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div>
                   <strong>{{ foods.length || '—' }}</strong
-                  ><span>夜市美食</span>
+                  ><span>各區美食</span>
                 </div>
                 <div><strong>03</strong><span>主題路線</span></div>
               </div>
@@ -542,6 +562,7 @@ onBeforeUnmount(() => {
                   <img
                     :src="item.image"
                     :alt="item.imageAlt"
+                    :class="{'tower-photo': item.imageSourcePlace}"
                     referrerpolicy="no-referrer"
                     @error="handleImageError"
                   />
@@ -549,7 +570,7 @@ onBeforeUnmount(() => {
                   <span class="story-copy">
                     <small>{{
                       item.kind === 'food-area'
-                        ? '夜市美食'
+                        ? placeTypeLabels[item.kind]
                         : item.town + '景點'
                     }}</small>
                     <strong>{{ item.name }}</strong>
@@ -572,7 +593,10 @@ onBeforeUnmount(() => {
             </a>
             <span> 釋出</span>
           </div>
-          <small class="hero-credit">台北101｜影像：{{ heroItem?.imageCredit || '政府開放資料' }}</small>
+          <small class="hero-credit">
+            影像：{{ heroItem?.imageCredit || '政府開放資料' }}
+            <template v-if="heroItem?.imageSourcePlace">｜來源紀錄：{{ heroItem.imageSourcePlace }}</template>
+          </small>
         </section>
 
         <section
@@ -621,6 +645,7 @@ onBeforeUnmount(() => {
                 <img
                   :src="item.image"
                   :alt="item.imageAlt"
+                  :class="{'tower-photo': item.imageSourcePlace}"
                   referrerpolicy="no-referrer"
                   @error="handleImageError"
                 />
@@ -660,8 +685,21 @@ onBeforeUnmount(() => {
           <div class="screen-heading">
             <div>
               <p class="eyebrow">TASTE · MARKET · LOCAL</p>
-              <h2>夜市美食 <span>夜市、市場與美食街區</span></h2>
-              <p class="food-data-note">依政府景點資料策展，非個別餐廳店家名單</p>
+              <h2>各區美食 <span>按行政區探索美食店家與街區</span></h2>
+              <p v-if="activeFoodSource.url" class="food-data-note">
+                資料來源：
+                <a :href="activeFoodSource.url" class="source-link" target="_blank" rel="noopener noreferrer">
+                  {{ activeFoodSource.name }}
+                </a>
+              </p>
+            </div>
+            <div class="food-categories" role="group" aria-label="美食類型">
+              <button type="button" :aria-pressed="foodCategory === 'restaurant'" @click="selectFoodCategory('restaurant')">
+                美食店家
+              </button>
+              <button type="button" :aria-pressed="foodCategory === 'food-area'" @click="selectFoodCategory('food-area')">
+                美食街區
+              </button>
             </div>
           </div>
 
@@ -697,7 +735,11 @@ onBeforeUnmount(() => {
               @click="selectedItem = item"
             >
               <span class="place-image">
+                <span v-if="item.kind === 'restaurant'" class="food-shop-art" aria-hidden="true">
+                  <UtensilsCrossed :size="38" :stroke-width="1.4" />
+                </span>
                 <img
+                  v-else
                   :src="item.image"
                   :alt="item.imageAlt"
                   referrerpolicy="no-referrer"
@@ -956,15 +998,18 @@ onBeforeUnmount(() => {
               <X :size="24" />
             </button>
             <div class="detail-image">
+              <div v-if="selectedItem.kind === 'restaurant'" class="food-shop-art" aria-hidden="true">
+                <UtensilsCrossed :size="74" :stroke-width="1.25" />
+              </div>
               <img
+                v-else
                 :src="selectedItem.image"
                 :alt="selectedItem.imageAlt"
+                :class="{'tower-photo': selectedItem.imageSourcePlace}"
                 referrerpolicy="no-referrer"
                 @error="handleImageError"
               />
-              <span>{{
-                selectedItem.kind === 'food-area' ? '夜市美食' : '城市景點'
-              }}</span>
+              <span>{{ placeTypeLabels[selectedItem.kind] }}</span>
             </div>
             <div class="detail-copy">
               <p class="eyebrow">DISCOVER TAIPEI</p>
@@ -1001,10 +1046,13 @@ onBeforeUnmount(() => {
                   <small>離開展場後也能繼續查看</small>
                 </div>
               </div>
-              <p v-if="selectedItem.imageCredit" class="image-credit">影像：{{ selectedItem.imageCredit }}</p>
+              <p v-if="selectedItem.imageCredit" class="image-credit">
+                影像：{{ selectedItem.imageCredit }}
+                <template v-if="selectedItem.imageSourcePlace">｜來源紀錄：{{ selectedItem.imageSourcePlace }}</template>
+              </p>
               <small class="detail-source">
                 <a :href="selectedItem.sourceUrl" class="source-link" target="_blank" rel="noopener noreferrer">
-                  資料：交通部觀光署・景點－觀光資訊資料庫
+                  資料：{{ selectedItem.sourceName || '交通部觀光署・景點－觀光資訊資料庫' }}
                 </a>
               </small>
             </div>

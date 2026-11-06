@@ -1,6 +1,6 @@
 # Taipei City Vision Exhibition
 
-以台北景點、夜市美食、主題路線與未來願景為入口的展場觸控網站。沿用 [hsinchu-city-vision-exhibition](https://github.com/JanShawn/hsinchu-city-vision-exhibition) 的 Nuxt 4、Vue 3 Composition API、TypeScript 與 Tailwind CSS 架構，以及 1080 × 960 畫布等比例縮放的互動方式。
+以台北景點、各區美食、主題路線與未來願景為入口的展場觸控網站。沿用新竹版的 Nuxt 4、Vue 3 Composition API、TypeScript、Tailwind CSS 架構及 1080 × 960 畫布等比例縮放方式。[新竹版原始碼](https://github.com/JanShawn/hsinchu-city-vision-exhibition)
 
 ## 開發與建置
 
@@ -47,12 +47,13 @@ nuxt.config.ts
 - 來源：[交通部觀光署「景點－觀光資訊資料庫」](https://data.gov.tw/dataset/7777)，觀光資料標準 V2.1。
 - 資料下載：[官方景點 JSON ZIP](https://media.taiwan.net.tw/XMLReleaseAll_public/v2.0/Zh_tw/Attraction-json.zip)。只保留 `PostalAddress.City` 為「臺北市／台北市」且 `ServiceStatus !== 0` 的紀錄，以名稱去重。
 - 授權：[政府資料開放授權條款－第1版](https://data.gov.tw/license)。保留來源連結、來源更新時間、原始 ID、原始名稱及影像名稱／攝影標示；個別圖片如另有第三方權利標示，公開或商業使用時仍應確認其適用範圍。
-- 本次快照為 350 個景點、24 個美食街區。後續更新的筆數可能改變。
-- [餐飲資料集](https://data.gov.tw/dataset/7779) 本次下載沒有台北店家紀錄，因此美食頁使用同一官方景點資料中的夜市、市場與美食街區，`kind` 明確標為 `food-area`，資料陣列為 `foods`，不表示個別餐廳推薦。名單集中於產生器的 `foodAreaNames`。
+- 本次快照為 350 個景點、95 家美食店家與 24 個美食街區。店家涵蓋台北 12 個行政區。
+- 美食店家來自臺北市商業處「臺北市店家改造資料」中分類為美食的紀錄，按地址分類，僅取店家名稱、地址與來源識別。顏加唐的地址在資料集省略行政區，松山區由商業處店家頁核對。[臺北市店家改造資料](https://data.taipei/dataset/detail?id=0d09e03e-bb11-4213-a9c8-6bfd392fbb16) · [商業處松山區店家資料](https://www.tcooc.gov.taipei/cp.aspx?n=A45E901BC1A8C1DD&s=8AAB360BFA842979)
+- 美食街區來自交通部觀光署的景點資料，包含夜市、市場與商圈。兩類地點都存放於 `foods`，`kind` 分別是 `restaurant` 和 `food-area`，每筆保留 `sourceName`、`sourceUrl`。
 - `tourism.json` 的 `image` 和 `imageSource` 保留官方 HTTPS 圖片網址。缺少網址或瀏覽器載入失敗時，畫面顯示內建的備援圖。
 - 若來源沒有完整地址、營業時間或網站，便不顯示該欄位，不自行補寫。QR Code 優先使用來源提供的 HTTPS 網站，缺少時使用原始經緯度組成 Google Maps 查詢連結。
 
-原專案的新竹市府圖片補充 API、影像代理及強制套用新竹州廳照片的 client plugin，已移除。台北主視覺直接使用資料中的台北101影像。
+台北101原始紀錄的照片是城市夜景。首頁、景點卡及詳情選用同一開放資料集「幾米月亮公車」紀錄的照片「臺北101與幾米月亮公車」，並在 `imageSourcePlace` 和畫面標示照片來源紀錄。
 
 ## 更新資料
 
@@ -60,7 +61,7 @@ nuxt.config.ts
 npm run generate:data
 ```
 
-需要可連線至政府資料來源的網路環境。來源下載逾時、缺少必要欄位或沒有台北資料時會停止，不覆寫既有 `tourism.json`。更新後提交 `tourism.json` 即可。部署流程直接使用已提交的資料快照。
+更新指令讀取交通部觀光署景點 JSON ZIP 與臺北市資料大平臺店家 JSON API。來源下載或驗證失敗時保留既有 `tourism.json`。更新後提交 `tourism.json` 即可。部署流程直接使用已提交的資料快照。
 
 前端讀取 `public/tourism.json`，不依賴 server route，能部署於 GitHub Pages，也能在展場以本機 HTTP server 使用。照片和 QR Code 指向的網頁需連線至外部來源。
 
@@ -77,7 +78,7 @@ npm run generate:data
 ## 此次驗證紀錄
 
 - Node.js 24.15.0：`npm run typecheck`、`npm run build`（靜態產生）通過。
-- 374 筆資料 ID／名稱無重複、照片欄位使用資料來源的 HTTPS 網址、三條路線的 13 個站點完整。
+- 檢查資料 ID、12 個行政區的店家分布、官方圖片網址及三條路線的 13 個站點。
 - 瀏覽器驗證：1080 × 960 版面、720 × 640 等比例縮放、行政區篩選、分頁、詳情、QR Code 顯示、路線站點切換、Escape 關閉詳情。
 - 美食頁四個分頁的「看完整介紹」皆位於卡片範圍內；文字區先保留所需高度，照片使用剩餘空間，避免資料說明增加高度後裁切按鈕。
 - 願景投票：確認畫面、暫停連點、重新整理後保留票數；測試使用獨立的 localhost 來源。
