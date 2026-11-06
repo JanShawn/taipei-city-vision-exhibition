@@ -22,8 +22,7 @@ import {
 } from '@lucide/vue'
 
 type Screen = 'home' | 'attractions' | 'food' | 'routes' | 'vision'
-type FoodCategory = 'restaurant' | 'food-area'
-type TourismKind = 'attraction' | FoodCategory
+type TourismKind = 'attraction' | 'food-area'
 
 interface TourismItem {
   id: string
@@ -55,8 +54,6 @@ interface TourismResponse {
     sourceUrl: string
     fetchedAt: string
     attractionUpdatedAt: string
-    foodShopsSourceUrl?: string
-    foodShopsSourceName?: string
     warnings: string[]
   }
   attractions: TourismItem[]
@@ -83,12 +80,10 @@ const selectedRoute = ref<TravelRoute | null>(null)
 const activeTown = ref('全部')
 const attractionPage = ref(0)
 const foodPage = ref(0)
-const foodCategory = ref<FoodCategory>('restaurant')
 
 const placeTypeLabels: Record<TourismKind, string> = {
   attraction: '城市景點',
-  restaurant: '美食店家',
-  'food-area': '美食街區',
+  'food-area': '美食地點',
 }
 
 const tourismBaseUrl = (useRuntimeConfig().app.baseURL || '/').replace(
@@ -141,7 +136,7 @@ const attractions = computed(() =>
   dedupeTourismItems(data.value?.attractions || []),
 )
 const foods = computed(() =>
-  dedupeTourismItems(data.value?.foods || []),
+  dedupeTourismItems((data.value?.foods || []).filter(item => item.kind === 'food-area' && item.image.startsWith('https://'))),
 )
 const isLoading = computed(
   () => status.value === 'idle' || status.value === 'pending',
@@ -182,14 +177,9 @@ const filteredAttractions = computed(() =>
     : attractions.value.filter((item) => item.town === activeTown.value),
 )
 
-const foodAreas = computed(() => foods.value.filter(item => item.kind === 'food-area'))
 const filteredFoods = computed(() => foods.value.filter(item =>
-  item.kind === foodCategory.value && (activeTown.value === '全部' || item.town === activeTown.value),
+  activeTown.value === '全部' || item.town === activeTown.value,
 ))
-const activeFoodSource = computed(() => foodCategory.value === 'restaurant'
-  ? {name: data.value?.meta.foodShopsSourceName, url: data.value?.meta.foodShopsSourceUrl}
-  : {name: data.value?.meta.source, url: data.value?.meta.sourceUrl},
-)
 
 const attractionPages = computed(() =>
   Math.max(1, Math.ceil(filteredAttractions.value.length / 6)),
@@ -219,7 +209,7 @@ const refreshFeaturedStories = () => {
   const randomAttraction =
     otherAttractions[Math.floor(Math.random() * otherAttractions.length)]
   const randomFood =
-    foodAreas.value[Math.floor(Math.random() * foodAreas.value.length)]
+    foods.value[Math.floor(Math.random() * foods.value.length)]
 
   featuredStories.value = [
     government,
@@ -443,11 +433,6 @@ const openStopDetail = (stop: TourismItem) => {
 const selectTown = (town: string) => {
   activeTown.value = town
   attractionPage.value = 0
-  foodPage.value = 0
-}
-
-const selectFoodCategory = (category: FoodCategory) => {
-  foodCategory.value = category
   foodPage.value = 0
 }
 
@@ -685,21 +670,13 @@ onBeforeUnmount(() => {
           <div class="screen-heading">
             <div>
               <p class="eyebrow">TASTE · MARKET · LOCAL</p>
-              <h2>各區美食 <span>按行政區探索美食店家與街區</span></h2>
-              <p v-if="activeFoodSource.url" class="food-data-note">
+              <h2>各區美食 <span>夜市、市場與餐飲地點</span></h2>
+              <p v-if="data" class="food-data-note">
                 資料來源：
-                <a :href="activeFoodSource.url" class="source-link" target="_blank" rel="noopener noreferrer">
-                  {{ activeFoodSource.name }}
+                <a :href="data.meta.sourceUrl" class="source-link" target="_blank" rel="noopener noreferrer">
+                  {{ data.meta.source }}
                 </a>
               </p>
-            </div>
-            <div class="food-categories" role="group" aria-label="美食類型">
-              <button type="button" :aria-pressed="foodCategory === 'restaurant'" @click="selectFoodCategory('restaurant')">
-                美食店家
-              </button>
-              <button type="button" :aria-pressed="foodCategory === 'food-area'" @click="selectFoodCategory('food-area')">
-                美食街區
-              </button>
             </div>
           </div>
 
@@ -735,11 +712,7 @@ onBeforeUnmount(() => {
               @click="selectedItem = item"
             >
               <span class="place-image">
-                <span v-if="item.kind === 'restaurant'" class="food-shop-art" aria-hidden="true">
-                  <UtensilsCrossed :size="38" :stroke-width="1.4" />
-                </span>
                 <img
-                  v-else
                   :src="item.image"
                   :alt="item.imageAlt"
                   referrerpolicy="no-referrer"
@@ -998,11 +971,7 @@ onBeforeUnmount(() => {
               <X :size="24" />
             </button>
             <div class="detail-image">
-              <div v-if="selectedItem.kind === 'restaurant'" class="food-shop-art" aria-hidden="true">
-                <UtensilsCrossed :size="74" :stroke-width="1.25" />
-              </div>
               <img
-                v-else
                 :src="selectedItem.image"
                 :alt="selectedItem.imageAlt"
                 :class="{'tower-photo': selectedItem.imageSourcePlace}"

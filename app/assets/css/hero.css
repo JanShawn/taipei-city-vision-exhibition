@@ -48,33 +48,6 @@
   font-size: 12px;
   line-height: 1.5;
 }
-.food-categories {
-  display: flex;
-  gap: 8px;
-}
-.food-categories button {
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: #d4c7a8;
-  background: rgba(10, 28, 37, 0.74);
-  font-size: 15px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.food-categories button[aria-pressed='true'] {
-  color: #191105;
-  background: var(--gold);
-}
-.food-shop-art {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--gold);
-  background: radial-gradient(ellipse at center, #342b22, #162028 75%);
-}
 .food-screen .place-card .place-image {
   height: auto;
   min-height: 0;
