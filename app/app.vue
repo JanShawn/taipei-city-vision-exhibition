@@ -152,7 +152,7 @@ const navItems = [
   },
   {
     id: 'food' as Screen,
-    label: '各區美食',
+    label: '商圈資訊',
     sub: '按行政區探索',
     icon: UtensilsCrossed,
   },
@@ -508,7 +508,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div>
                   <strong>{{ foods.length || '—' }}</strong
-                  ><span>各區美食</span>
+                  ><span>商圈資訊</span>
                 </div>
                 <div><strong>03</strong><span>主題路線</span></div>
               </div>
@@ -670,7 +670,7 @@ onBeforeUnmount(() => {
           <div class="screen-heading">
             <div>
               <p class="eyebrow">TASTE · MARKET · LOCAL</p>
-              <h2>各區美食 <span>夜市、市場與餐飲地點</span></h2>
+              <h2>商圈資訊</h2>
             </div>
           </div>
 

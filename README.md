@@ -1,6 +1,6 @@
 # Taipei City Vision Exhibition
 
-以台北景點、各區美食、主題路線與未來願景為入口的展場觸控網站。沿用新竹版的 Nuxt 4、Vue 3 Composition API、TypeScript、Tailwind CSS 架構及 1080 × 960 畫布等比例縮放方式。[新竹版原始碼](https://github.com/JanShawn/hsinchu-city-vision-exhibition)
+以台北景點、商圈資訊、主題路線與未來願景為入口的展場觸控網站。沿用新竹版的 Nuxt 4、Vue 3 Composition API、TypeScript、Tailwind CSS 架構及 1080 × 960 畫布等比例縮放方式。[新竹版原始碼](https://github.com/JanShawn/hsinchu-city-vision-exhibition)
 
 ## 開發與建置
 
