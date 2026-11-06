@@ -671,12 +671,6 @@ onBeforeUnmount(() => {
             <div>
               <p class="eyebrow">TASTE · MARKET · LOCAL</p>
               <h2>各區美食 <span>夜市、市場與餐飲地點</span></h2>
-              <p v-if="data" class="food-data-note">
-                資料來源：
-                <a :href="data.meta.sourceUrl" class="source-link" target="_blank" rel="noopener noreferrer">
-                  {{ data.meta.source }}
-                </a>
-              </p>
             </div>
           </div>
 
