@@ -1,0 +1,68 @@
+.hero-background {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-artwork::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(4, 13, 21, 0.98), rgba(4, 13, 21, 0.78) 42%, rgba(4, 13, 21, 0.12));
+  content: '';
+}
+
+.hero-credit,
+.dataset-note {
+  position: absolute;
+  bottom: 18px;
+  z-index: 4;
+  max-width: 48%;
+  color: #c1d0d3;
+  font-size: 11px;
+}
+.hero-credit { right: 28px; text-align: right; }
+.dataset-note { left: 46px; }
+.source-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.filter-row button {
+  min-width: 0;
+  flex: 1;
+  padding: 0 8px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.food-data-note,
+.image-credit {
+  margin: 8px 0 0;
+  color: #a2b3b7;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.food-filter button { flex: none; min-width: 70px; }
+.food-screen .place-card .place-image {
+  height: auto;
+  min-height: 0;
+  flex: 1;
+}
+.food-screen .place-card .place-body { flex: none; }
+.food-screen .place-card .place-body b {
+  min-height: 28px;
+  margin-top: 8px;
+  padding-top: 0;
+}
+.route-card:disabled { opacity: 0.5; cursor: wait; }
+.story-loading button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--panel-soft);
+}

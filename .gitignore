@@ -1,0 +1,9 @@
+.nuxt
+.output
+node_modules
+.data
+.env
+dist
+*.log
+/public/images/
+/public/image-unavailable.svg
